@@ -13,23 +13,29 @@ export const createSnake = (
   { sizeCell }: Options,
   duration: number,
 ) => {
-  // --- Récupère les positions et les angles ---
+  // --- 1️⃣ Récupère positions + angle lissé ---
+  let lastAngle = 0;
+
   const headData = chain.map((snake, i, arr) => {
     const x = getHeadX(snake) * sizeCell;
     const y = getHeadY(snake) * sizeCell;
 
-    let angleDeg = 0;
+    let angleDeg = lastAngle;
     if (i < arr.length - 1) {
       const next = arr[i + 1];
       const dx = getHeadX(next) - getHeadX(snake);
       const dy = getHeadY(next) - getHeadY(snake);
-      angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
+      const rawAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
+
+      // interpolation douce : on amortit la rotation
+      angleDeg = lastAngle + (rawAngle - lastAngle) * 0.25;
+      lastAngle = angleDeg;
     }
 
     return { x, y, t: i / arr.length, angle: angleDeg };
   });
 
-  // --- Animation fluide ---
+  // --- 2️⃣ Animation fluide (translation + rotation lissée) ---
   const keyframes = headData.map(({ t, x, y, angle }) => ({
     t,
     style: `transform:translate(${x}px,${y}px) rotate(${angle}deg)`,
@@ -40,49 +46,44 @@ export const createSnake = (
     createAnimation(animationName, keyframes),
     `
     .car {
-      animation: ${animationName} ${duration * 1.3}ms linear infinite;
+      animation: ${animationName} ${duration * 1.5}ms linear infinite;
       transform-origin: center;
     }
     `,
   ];
 
-  // --- Taille dynamique selon la grille ---
-const scale = (sizeCell / 10) * 20;
-
+  // --- 3️⃣ SVG Renault F1 (taille ×4) ---
   const carSvg = `
-    <g class="car" transform="scale(${scale})">
+    <g class="car">
       <!-- Carrosserie principale -->
-      <path d="M-6.6,-2.5 L-1.2,-2.5 L5.4,-1.6 L6.6,0 L5.4,1.6 L-1.2,2.5 L-6.6,2.5 Z" fill="#FFD500"/>
+      <path d="M-26.4,-10 L-4.8,-10 L21.6,-6.4 L26.4,0 L21.6,6.4 L-4.8,10 L-26.4,10 Z" fill="#FFD500"/>
 
       <!-- Bande blanche -->
-      <path d="M4.8,-0.6 L4.8,0.6 L-6.6,1.2 L-6.6,-1.2 Z" fill="#FFFFFF"/>
+      <path d="M19.2,-2.4 L19.2,2.4 L-26.4,4.8 L-26.4,-4.8 Z" fill="#FFFFFF"/>
 
       <!-- Cockpit noir -->
-      <path d="M-1.2,-0.7 Q4.2,0 -1.2,0.7 Z" fill="#111"/>
+      <path d="M-4.8,-2.8 Q16.8,0 -4.8,2.8 Z" fill="#111"/>
 
       <!-- Aileron avant noir -->
-      <rect x="6.6" y="-1.5" width="0.8" height="3" fill="#111"/>
+      <rect x="26.4" y="-6" width="3.2" height="12" fill="#111"/>
 
       <!-- Aileron arrière noir -->
-      <rect x="-7.4" y="-1.5" width="1.4" height="3" fill="#111"/>
+      <rect x="-29.6" y="-6" width="5.6" height="12" fill="#111"/>
 
       <!-- Nez blanc avec pointe rouge -->
-      <path d="M3.2,-0.5 L7.2,-0.2 L7.4,0 L7.2,0.2 L3.2,0.5 Z" fill="#FFFFFF"/>
-      <path d="M7.2,-0.2 L7.4,0 L7.2,0.2 L7.4,0 Z" fill="#D10000"/>
+      <path d="M12.8,-2 L28.8,-0.8 L29.6,0 L28.8,0.8 L12.8,2 Z" fill="#FFFFFF"/>
+      <path d="M28.8,-0.8 L29.6,0 L28.8,0.8 L29.6,0 Z" fill="#D10000"/>
 
       <!-- Prise d’air noire -->
-      <rect x="-3.2" y="-0.5" width="0.8" height="1" fill="#222"/>
+      <rect x="-12.8" y="-2" width="3.2" height="4" fill="#222"/>
 
       <!-- Roues arrière -->
-      <ellipse cx="-4.8" cy="-2.1" rx="0.8" ry="0.4" fill="#111"/>
-      <ellipse cx="-4.8" cy="2.1" rx="0.8" ry="0.4" fill="#111"/>
+      <ellipse cx="-19.2" cy="-8.4" rx="3.2" ry="1.6" fill="#111"/>
+      <ellipse cx="-19.2" cy="8.4" rx="3.2" ry="1.6" fill="#111"/>
 
       <!-- Roues avant -->
-      <ellipse cx="4.8" cy="-1.4" rx="0.6" ry="0.3" fill="#111"/>
-      <ellipse cx="4.8" cy="1.4" rx="0.6" ry="0.3" fill="#111"/>
-
-      <!-- Liseré bleu -->
-      <rect x="-4.5" y="-2.5" width="9" height="5" fill="none" stroke="#0055FF" stroke-width="0.3"/>
+      <ellipse cx="19.2" cy="-5.6" rx="2.4" ry="1.2" fill="#111"/>
+      <ellipse cx="19.2" cy="5.6" rx="2.4" ry="1.2" fill="#111"/>
     </g>
   `;
 
