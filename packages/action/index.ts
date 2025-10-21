@@ -21,7 +21,47 @@ import { parseOutputsOption } from "./outputsOptions";
       core.getInput("svg_out_path"),
     ],
   );
-  const githubToken =
+
+if (!outputs || outputs.length === 0) {
+  console.log("⚙️ No outputs provided, defaulting to ../dist/github-contribution-grid-snake.svg");
+
+  outputs.push({
+    filename: path.resolve("../dist/github-contribution-grid-snake.svg"),
+    format: "svg",
+    drawOptions: {
+      colorDots: {
+        A: "#9be9a8",
+        B: "#40c463",
+        C: "#30a14e",
+        D: "#216e39",
+      },
+      colorEmpty: "#ebedf0",
+      colorDotBorder: "#ffffff",
+      colorSnake: "#FFD500", // 🟡 Jaune Renault
+      sizeCell: 12,
+      sizeDot: 10,
+      sizeDotBorderRadius: 2,
+      dark: {
+        colorDots: {
+          A: "#0e4429",
+          B: "#006d32",
+          C: "#26a641",
+          D: "#39d353",
+        },
+        colorEmpty: "#161b22",
+        colorDotBorder: "#0d1117",
+        colorSnake: "#FFD500",
+      },
+    },
+    animationOptions: {
+      frameDuration: 80, // durée d'une frame en ms
+      step: 2,           // vitesse de déplacement
+    },
+  });
+}
+
+
+    const githubToken =
     process.env.GITHUB_TOKEN ?? core.getInput("github_token");
 
   const { generateContributionSnake } = await import(
