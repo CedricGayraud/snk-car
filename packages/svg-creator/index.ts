@@ -75,7 +75,7 @@ export const createSvg = (
   drawOptions: DrawOptions,
   animationOptions: Pick<AnimationOptions, "frameDuration">,
 ) => {
-  const zoomFactor = 1.5;
+  const zoomFactor = 2;
   drawOptions.sizeCell *= zoomFactor;
   drawOptions.sizeDot *= zoomFactor;
 

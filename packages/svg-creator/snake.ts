@@ -13,43 +13,43 @@ export const createSnake = (
   { sizeCell }: Options,
   duration: number,
 ) => {
-  // --- 1️⃣ Récupère les positions + angles de la tête du snake ---
+  // --- 1️⃣ Positions + angle de direction ---
   const headData = chain.map((snake, i, arr) => {
     const x = getHeadX(snake) * sizeCell;
     const y = getHeadY(snake) * sizeCell;
 
-    // calcule l’angle de direction (en radians → degrés)
+    // angle vers la cellule suivante
     let angleDeg = 0;
-    if (i > 0) {
-      const prev = arr[i - 1];
-      const dx = getHeadX(snake) - getHeadX(prev);
-      const dy = getHeadY(snake) - getHeadY(prev);
+    if (i < arr.length - 1) {
+      const next = arr[i + 1];
+      const dx = getHeadX(next) - getHeadX(snake);
+      const dy = getHeadY(next) - getHeadY(snake);
       angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
     }
+
     return { x, y, t: i / arr.length, angle: angleDeg };
   });
 
-  // --- 2️⃣ Génère les keyframes de translation + rotation ---
+  // --- 2️⃣ Animation fluide ---
   const keyframes = headData.map(({ t, x, y, angle }) => ({
     t,
     style: `transform:translate(${x}px,${y}px) rotate(${angle}deg)`,
   }));
 
   const animationName = "carMove";
-
   const styles = [
     createAnimation(animationName, keyframes),
     `
     .car {
-      animation: ${animationName} ${duration}ms linear infinite;
+      animation: ${animationName} ${duration * 1.3}ms linear infinite;
       transform-origin: center;
     }
     `,
   ];
 
-  // --- 3️⃣ SVG détaillé Renault F1 (fidèle à ton drawCar) ---
+  // --- 3️⃣ SVG détaillé Renault F1, taille agrandie et ajustée ---
   const carSvg = `
-    <g class="car" transform="scale(2.2)">
+    <g class="car" transform="scale(4.2)">
       <!-- Carrosserie principale -->
       <path d="M-6.6,-2.5 L-1.2,-2.5 L5.4,-1.6 L6.6,0 L5.4,1.6 L-1.2,2.5 L-6.6,2.5 Z" fill="#FFD500"/>
 
