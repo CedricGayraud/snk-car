@@ -10,11 +10,11 @@ import type { Snake } from "@snk/types/snake";
 import type { Grid, Color, Empty } from "@snk/types/grid";
 import type { Point } from "@snk/types/point";
 import type { AnimationOptions } from "@snk/gif-creator";
-import { createSnake } from "./snake";
-import { createGrid } from "./grid";
 import { createStack } from "./stack";
 import { h } from "./xml-utils";
 import { minifyCss } from "./css-utils";
+import { drawCar } from "@snk/draw/drawCar";
+import { drawGrid } from "@snk/draw/drawGrid";
 
 export type DrawOptions = {
   colorDots: Record<Color, string>;
@@ -82,17 +82,70 @@ export const createSvg = (
 
   const livingCells = createLivingCells(grid, chain, cells);
 
-  const elements = [
-    createGrid(livingCells, drawOptions, duration),
-    createStack(
-      livingCells,
-      drawOptions,
-      grid.width * drawOptions.sizeCell,
-      (grid.height + 2) * drawOptions.sizeCell,
-      duration,
-    ),
-    createSnake(chain, drawOptions, duration),
-  ];
+const elements: {
+  svgElements: string[];
+  styles: string[];
+}[] = [];
+
+// 🧱 --- Grille personnalisée ---
+// On crée un faux contexte Canvas pour exécuter ton drawGrid()
+{
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d")!;
+  if (ctx) {
+    // On dessine la grille dans ce contexte (aucun retour, juste rendu interne)
+    drawGrid(ctx, grid, cells, drawOptions);
+  }
+
+  // On ajoute une simple balise de placeholder SVG
+  // (car le contenu est dessiné dans le contexte, non renvoyé sous forme de string)
+  elements.push({
+    svgElements: [
+      `<rect width="${(grid.width + 2) * drawOptions.sizeCell}" height="${(grid.height + 2) * drawOptions.sizeCell}" fill="#484848" />`,
+    ],
+    styles: [],
+  });
+}
+
+// 🏁 --- Stack de contributions (optionnel, tu peux le supprimer si tu veux que ta grille soit statique)
+elements.push(
+  createStack(
+    livingCells,
+    drawOptions,
+    grid.width * drawOptions.sizeCell,
+    (grid.height + 2) * drawOptions.sizeCell,
+    duration,
+  )
+);
+
+// 🏎️ --- Voiture Renault (ton drawCar) ---
+{
+  const svgCarElements: string[] = [];
+  for (let i = 0; i < chain.length; i++) {
+    const snake = chain[i];
+
+    // Ici on simule un contexte pour ton drawCar
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d")!;
+    if (ctx) {
+      drawCar(ctx, snake, drawOptions);
+    }
+
+    // On crée une frame SVG temporelle (simple placeholder d’animation)
+    svgCarElements.push(
+      `<use href="#snake-car" style="animation-delay:${i * animationOptions.frameDuration}ms"/>`
+    );
+  }
+
+  elements.push({
+    svgElements: [
+      `<g id="snake-car">`,
+      ...svgCarElements,
+      `</g>`,
+    ],
+    styles: [],
+  });
+}
 
   const viewBox = [
     -drawOptions.sizeCell,

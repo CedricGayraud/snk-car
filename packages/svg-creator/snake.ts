@@ -1,96 +1,65 @@
-import { getSnakeLength, snakeToCells } from "@snk/types/snake";
+import { getHeadX, getHeadY } from "@snk/types/snake";
 import type { Snake } from "@snk/types/snake";
-import type { Point } from "@snk/types/point";
-import { h } from "./xml-utils";
-import { createAnimation } from "./css-utils";
 
 export type Options = {
   colorSnake: string;
   sizeCell: number;
-  sizeDot: number;
 };
-
-const lerp = (k: number, a: number, b: number) => (1 - k) * a + k * b;
 
 export const createSnake = (
   chain: Snake[],
-  { sizeCell, sizeDot }: Options,
-  duration: number,
+  o: Options,
+  duration: number
 ) => {
-  const snakeN = chain[0] ? getSnakeLength(chain[0]) : 0;
+  const frameDelay = duration / Math.max(chain.length, 1);
 
-  const snakeParts: Point[][] = Array.from({ length: snakeN }, () => []);
+  const frames = chain.map((snake, i) => {
+    const x = getHeadX(snake);
+    const y = getHeadY(snake);
+    const next = chain[Math.min(i + 1, chain.length - 1)];
+    const nx = getHeadX(next);
+    const ny = getHeadY(next);
 
-  for (const snake of chain) {
-    const cells = snakeToCells(snake);
-    for (let i = cells.length; i--; ) snakeParts[i].push(cells[i]);
-  }
+    const angle = Math.atan2(ny - y, nx - x);
+    const deg = (angle * 180) / Math.PI;
+    const px = x * o.sizeCell + o.sizeCell / 2;
+    const py = y * o.sizeCell + o.sizeCell / 2;
 
-  const svgElements = snakeParts.map((_, i, { length }) => {
-    // compute snake part size
-    const dMin = sizeDot * 0.8;
-    const dMax = sizeCell * 0.9;
-    const iMax = Math.min(4, length);
-    const u = (1 - Math.min(i, iMax) / iMax) ** 2;
-    const s = lerp(u, dMin, dMax);
+    return `
+      <g transform="translate(${px}, ${py}) rotate(${deg}) scale(1.3)">
+        <!-- carrosserie jaune -->
+        <path d="M -22 -8 L -4 -10 L 18 -6 L 26 0 L 18 6 L -4 10 L -22 8 Z" fill="#FFD500"/>
 
-    const m = (sizeCell - s) / 2;
+        <!-- nez blanc + pointe rouge -->
+        <path d="M 10 -5 L 26 -2 L 28 0 L 26 2 L 10 5 Z" fill="#FFF"/>
+        <circle cx="27" cy="0" r="2.2" fill="#D10000"/>
 
-    const r = Math.min(4.5, (4 * s) / sizeDot);
+        <!-- cockpit noir -->
+        <path d="M -6 -4 Q 8 0 -6 4 Z" fill="#111"/>
 
-    return h("rect", {
-      class: `s s${i}`,
-      x: m.toFixed(1),
-      y: m.toFixed(1),
-      width: s.toFixed(1),
-      height: s.toFixed(1),
-      rx: r.toFixed(1),
-      ry: r.toFixed(1),
-    });
-  });
+        <!-- aileron avant -->
+        <rect x="22" y="-7" width="8" height="14" fill="#111"/>
 
-  const transform = ({ x, y }: Point) =>
-    `transform:translate(${x * sizeCell}px,${y * sizeCell}px)`;
+        <!-- aileron arrière -->
+        <rect x="-28" y="-9" width="8" height="18" fill="#111"/>
 
-  const styles = [
-    `.s{ 
-      shape-rendering: geometricPrecision;
-      fill: var(--cs);
-      animation: none linear ${duration}ms infinite
-    }`,
+        <!-- pneus (arrière plus larges) -->
+        <ellipse cx="-16" cy="-10" rx="7" ry="4" fill="#111"/>
+        <ellipse cx="-16" cy="10"  rx="7" ry="4" fill="#111"/>
+        <ellipse cx="12"  cy="-9"  rx="5" ry="3" fill="#111"/>
+        <ellipse cx="12"  cy="9"   rx="5" ry="3" fill="#111"/>
+      </g>
+      <animateTransform attributeName="transform" attributeType="XML"
+        type="translate"
+        from="${px} ${py}" to="${px} ${py}"
+        dur="${duration}ms" begin="${i * frameDelay}ms" repeatCount="indefinite"/>
+    `;
+  }).join("");
 
-    ...snakeParts.map((positions, i) => {
-      const id = `s${i}`;
-      const animationName = id;
-
-      const keyframes = removeInterpolatedPositions(
-        positions.map((tr, i, { length }) => ({ ...tr, t: i / length })),
-      ).map(({ t, ...p }) => ({ t, style: transform(p) }));
-
-      return [
-        createAnimation(animationName, keyframes),
-
-        `.s.${id}{
-          ${transform(positions[0])};
-          animation-name: ${animationName}
-        }`,
-      ];
-    }),
-  ].flat();
-
-  return { svgElements, styles };
+  return {
+    svgElements: [ `<g id="snake-car">${frames}</g>` ],
+    styles: [
+      `#snake-car { animation: none linear ${duration}ms infinite; }`
+    ],
+  };
 };
-
-const removeInterpolatedPositions = <T extends Point>(arr: T[]) =>
-  arr.filter((u, i, arr) => {
-    if (i - 1 < 0 || i + 1 >= arr.length) return true;
-
-    const a = arr[i - 1];
-    const b = arr[i + 1];
-
-    const ex = (a.x + b.x) / 2;
-    const ey = (a.y + b.y) / 2;
-
-    // return true;
-    return !(Math.abs(ex - u.x) < 0.01 && Math.abs(ey - u.y) < 0.01);
-  });
