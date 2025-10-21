@@ -50,28 +50,22 @@ export const createGrid = (
     </defs>
   `;
 
-  // --- 🧱 Fond global (piste, marges, vibreurs) ---
+  // --- 🧱 Fond global ---
   const base = `
     <rect x="0" y="0" width="${totalW}" height="${totalH}" fill="#000"/>
     <rect x="${outlineWidth}" y="${outlineWidth}" 
           width="${totalW - outlineWidth * 2}" height="${totalH - outlineWidth * 2}" fill="#FFF"/>
-
-    <!-- Vibreurs -->
     <rect x="${outlineWidth + outerMargin}" y="${outlineWidth + outerMargin}"
           width="${totalW - (outlineWidth + outerMargin) * 2}" height="${vibreurHeight}" fill="url(#kerb)"/>
     <rect x="${outlineWidth + outerMargin}" 
           y="${totalH - (outlineWidth + outerMargin) - vibreurHeight}"
           width="${totalW - (outlineWidth + outerMargin) * 2}" height="${vibreurHeight}" fill="url(#kerb)"/>
-
-    <!-- Marges intérieures -->
     <rect x="${gridX}" y="${gridY - innerMargin}" width="${gridW}" height="${innerMargin}" fill="#FFF"/>
     <rect x="${gridX}" y="${gridY + gridH}" width="${gridW}" height="${innerMargin}" fill="#FFF"/>
-
-    <!-- Piste -->
     <rect x="${gridX}" y="${gridY}" width="${gridW}" height="${gridH}" fill="#484848"/>
   `;
 
-  // --- 🎬 Animation contrôlée (au passage de la voiture uniquement) ---
+  // --- 🎬 Animation des cellules ---
   const colorMap: Record<number, string> = {
     0: "#484848",
     1: "#FFFFFF",
@@ -93,29 +87,26 @@ export const createGrid = (
     const r = o.sizeDotBorderRadius;
     const fill = colorMap[color as number] ?? o.colorEmpty;
 
-    const id = t !== null ? `cell${i.toString(36)}` : null;
-
-    if (id) {
-      const animName = id;
-      const tNum = t as number; // ✅ conversion sûre
+    if (t != null) {
+      const animName = `cell${i.toString(36)}`;
+      const tNum = Math.max(0, Math.min(1, t - 0.005)); // ⏳ petit décalage de synchro
 
       styles.push(
         createAnimation(animName, [
-          { t: Math.max(0, tNum - 0.001), style: `fill:${fill}` },
-          { t: tNum, style: `fill:#484848` },
+          { t: 0, style: `fill:${fill}` },
+          { t: tNum, style: `fill:${fill}` },
+          { t: tNum + 0.002, style: `fill:#484848` },
           { t: 1, style: `fill:#484848` },
         ]),
-        `.cell.${id}{ animation:${animName} ${duration}ms linear infinite; }`
+        `.cell.${animName}{ animation:${animName} ${duration}ms linear forwards; }` // ✅ plus de boucle infinie
       );
+
+      return `<rect x="${cx}" y="${cy}" width="${o.sizeDot}" height="${o.sizeDot}"
+                   rx="${r}" ry="${r}" fill="${fill}" class="cell ${animName}"/>`;
     }
 
-
-    return `<rect 
-      x="${cx}" y="${cy}" 
-      width="${o.sizeDot}" height="${o.sizeDot}" 
-      rx="${r}" ry="${r}" 
-      fill="${fill}" 
-      class="cell ${id || ""}"/>`;
+    return `<rect x="${cx}" y="${cy}" width="${o.sizeDot}" height="${o.sizeDot}"
+                   rx="${r}" ry="${r}" fill="${fill}" class="cell"/>`;
   }).join("");
 
   return {
