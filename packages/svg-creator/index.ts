@@ -88,11 +88,12 @@ export const createSvg = (
   ];
 
   const viewBox = [
-    -drawOptions.sizeCell,
-    -drawOptions.sizeCell * 2,
-    width,
-    height,
+  -drawOptions.sizeCell,
+  -drawOptions.sizeCell * 3, // ← passe de 2 à 3 pour ajouter un peu d’espace bas
+  width,
+  height + drawOptions.sizeCell * 2, // ← augmente la hauteur
   ].join(" ");
+
 
   const style =
     generateColorVar(drawOptions) +
