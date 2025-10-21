@@ -76,8 +76,14 @@ export const drawCircleStack = (
     ctx.lineWidth = 1;
     ctx.beginPath();
 
-    pathRoundedRect(ctx, o.sizeDot, o.sizeDot, o.sizeBorderRadius);
-
+    pathRoundedRect(
+      ctx,
+      0, // x
+      0, // y
+      o.sizeDot, // width
+      o.sizeDot, // height
+      o.sizeBorderRadius, // borderRadius
+    );
     ctx.fill();
     ctx.stroke();
     ctx.closePath();

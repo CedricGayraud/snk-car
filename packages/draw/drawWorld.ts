@@ -1,5 +1,5 @@
 import { drawGrid } from "./drawGrid";
-import { drawSnake, drawSnakeLerp } from "./drawSnake";
+import { drawCar } from "./drawCar";
 import type { Grid, Color } from "@snk/types/grid";
 import type { Snake } from "@snk/types/snake";
 import type { Point } from "@snk/types/point";
@@ -45,7 +45,7 @@ export const drawWorld = (
 
   ctx.translate(1 * o.sizeCell, 2 * o.sizeCell);
   drawGrid(ctx, grid, cells, o);
-  drawSnake(ctx, snake, o);
+  drawCar(ctx, snake, o);
 
   ctx.restore();
 
@@ -69,17 +69,13 @@ export const drawLerpWorld = (
   ctx: CanvasRenderingContext2D | CanvasRenderingContext2D,
   grid: Grid,
   cells: Point[] | null,
-  snake0: Snake,
-  snake1: Snake,
   stack: Color[],
-  k: number,
   o: Options,
 ) => {
   ctx.save();
 
   ctx.translate(1 * o.sizeCell, 2 * o.sizeCell);
   drawGrid(ctx, grid, cells, o);
-  drawSnakeLerp(ctx, snake0, snake1, k, o);
 
   ctx.translate(0, (grid.height + 2) * o.sizeCell);
 

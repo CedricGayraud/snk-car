@@ -58,10 +58,10 @@ const drawGrid_drawGrid = (ctx, grid, cells, o) => {
         }
 };
 
-;// CONCATENATED MODULE: ../draw/drawSnake.ts
+;// CONCATENATED MODULE: ../draw/drawCar.ts
 
 
-const drawSnake_drawSnake = (ctx, snake, o) => {
+const drawCar_drawCar = (ctx, snake, o) => {
     const cells = snakeToCells(snake);
     for (let i = 0; i < cells.length; i++) {
         const u = (i + 1) * 0.6;
@@ -76,7 +76,7 @@ const drawSnake_drawSnake = (ctx, snake, o) => {
 };
 const lerp = (k, a, b) => (1 - k) * a + k * b;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
-const drawSnakeLerp = (ctx, snake0, snake1, k, o) => {
+const drawCarLerp = (ctx, snake0, snake1, k, o) => {
     const m = 0.8;
     const n = snake0.length / 2;
     for (let i = 0; i < n; i++) {
@@ -112,7 +112,7 @@ const drawWorld = (ctx, grid, cells, snake, stack, o) => {
     ctx.save();
     ctx.translate(1 * o.sizeCell, 2 * o.sizeCell);
     drawGrid(ctx, grid, cells, o);
-    drawSnake(ctx, snake, o);
+    drawCar(ctx, snake, o);
     ctx.restore();
     ctx.save();
     ctx.translate(o.sizeCell, (grid.height + 4) * o.sizeCell);
@@ -129,7 +129,7 @@ const drawLerpWorld = (ctx, grid, cells, snake0, snake1, stack, k, o) => {
     ctx.save();
     ctx.translate(1 * o.sizeCell, 2 * o.sizeCell);
     drawGrid_drawGrid(ctx, grid, cells, o);
-    drawSnakeLerp(ctx, snake0, snake1, k, o);
+    drawCarLerp(ctx, snake0, snake1, k, o);
     ctx.translate(0, (grid.height + 2) * o.sizeCell);
     const max = grid.data.reduce((sum, x) => sum + +!!x, stack.length);
     drawStack(ctx, stack, max, grid.width * o.sizeCell, o);

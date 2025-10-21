@@ -1,12 +1,18 @@
 export const pathRoundedRect = (
   ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
   width: number,
   height: number,
   borderRadius: number,
 ) => {
-  ctx.moveTo(borderRadius, 0);
-  ctx.arcTo(width, 0, width, height, borderRadius);
-  ctx.arcTo(width, height, 0, height, borderRadius);
-  ctx.arcTo(0, height, 0, 0, borderRadius);
-  ctx.arcTo(0, 0, width, 0, borderRadius);
+  ctx.moveTo(x + borderRadius, y);
+  ctx.lineTo(x + width - borderRadius, y);
+  ctx.arcTo(x + width, y, x + width, y + borderRadius, borderRadius);
+  ctx.lineTo(x + width, y + height - borderRadius);
+  ctx.arcTo(x + width, y + height, x + width - borderRadius, y + height, borderRadius);
+  ctx.lineTo(x + borderRadius, y + height);
+  ctx.arcTo(x, y + height, x, y + height - borderRadius, borderRadius);
+  ctx.lineTo(x, y + borderRadius);
+  ctx.arcTo(x, y, x + borderRadius, y, borderRadius);
 };
