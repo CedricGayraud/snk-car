@@ -13,30 +13,41 @@ export const createSnake = (
   { sizeCell }: Options,
   duration: number,
 ) => {
-  // --- 1️⃣ Récupère positions + angle lissé ---
-  let lastAngle = 0;
+  const interpolatedFrames: {
+    x: number;
+    y: number;
+    t: number;
+    angle: number;
+  }[] = [];
 
-  const headData = chain.map((snake, i, arr) => {
-    const x = getHeadX(snake) * sizeCell;
-    const y = getHeadY(snake) * sizeCell;
+  // --- 1️⃣ On génère des positions intermédiaires pour la fluidité ---
+  const subSteps = 6; // plus élevé = plus fluide
+  for (let i = 0; i < chain.length - 1; i++) {
+    const curr = chain[i];
+    const next = chain[i + 1];
 
-    let angleDeg = lastAngle;
-    if (i < arr.length - 1) {
-      const next = arr[i + 1];
-      const dx = getHeadX(next) - getHeadX(snake);
-      const dy = getHeadY(next) - getHeadY(snake);
-      const rawAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    const x1 = getHeadX(curr) * sizeCell;
+    const y1 = getHeadY(curr) * sizeCell;
+    const x2 = getHeadX(next) * sizeCell;
+    const y2 = getHeadY(next) * sizeCell;
 
-      // interpolation douce : on amortit la rotation
-      angleDeg = lastAngle + (rawAngle - lastAngle) * 0.25;
-      lastAngle = angleDeg;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+
+    for (let j = 0; j < subSteps; j++) {
+      const k = j / subSteps;
+      interpolatedFrames.push({
+        x: x1 + dx * k,
+        y: y1 + dy * k,
+        t: (i + k) / chain.length,
+        angle,
+      });
     }
+  }
 
-    return { x, y, t: i / arr.length, angle: angleDeg };
-  });
-
-  // --- 2️⃣ Animation fluide (translation + rotation lissée) ---
-  const keyframes = headData.map(({ t, x, y, angle }) => ({
+  // --- 2️⃣ Création des keyframes SVG fluide ---
+  const keyframes = interpolatedFrames.map(({ t, x, y, angle }) => ({
     t,
     style: `transform:translate(${x}px,${y}px) rotate(${angle}deg)`,
   }));
@@ -46,7 +57,7 @@ export const createSnake = (
     createAnimation(animationName, keyframes),
     `
     .car {
-      animation: ${animationName} ${duration * 1.5}ms linear infinite;
+      animation: ${animationName} ${duration * 3.2}ms linear infinite;
       transform-origin: center;
     }
     `,
