@@ -12,7 +12,7 @@ import type { Point } from "@snk/types/point";
 import type { AnimationOptions } from "@snk/gif-creator";
 import { createSnake } from "./snake";
 import { createGrid } from "./grid";
-import { createStack } from "./stack";
+// import { createStack } from "./stack";
 import { h } from "./xml-utils";
 import { minifyCss } from "./css-utils";
 
@@ -84,13 +84,6 @@ export const createSvg = (
 
   const elements = [
     createGrid(livingCells, drawOptions, duration),
-    createStack(
-      livingCells,
-      drawOptions,
-      grid.width * drawOptions.sizeCell,
-      (grid.height + 2) * drawOptions.sizeCell,
-      duration,
-    ),
     createSnake(chain, drawOptions, duration),
   ];
 

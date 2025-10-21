@@ -8,9 +8,6 @@ export type Options = {
   sizeDot: number;
 };
 
-const transform = (x: number, y: number) =>
-  `transform:translate(${x}px,${y}px)`;
-
 export const createSnake = (
   chain: Snake[],
   { sizeCell }: Options,
@@ -24,7 +21,7 @@ export const createSnake = (
 
   const keyframes = headPositions.map(({ t, x, y }) => ({
     t,
-    style: transform(x, y),
+    style: `transform:translate(${x}px,${y}px)`,
   }));
 
   const animationName = "carMove";
@@ -32,19 +29,30 @@ export const createSnake = (
     createAnimation(animationName, keyframes),
     `
     .car {
-      fill: none;
-      stroke: none;
       animation: ${animationName} ${duration}ms linear infinite;
+      transform-origin: center;
     }
     `,
   ];
 
-  // 🏎️ Forme de la F1 (simple path stylisé, mais tu peux garder ton rendu complet ici)
+  // 🎨 Version F1 Renault (simplifiée mais fidèle à ta version canvas)
   const carSvg = `
-    <g class="car">
-      <rect x="-6" y="-3" width="12" height="6" fill="#FFD500" stroke="#111" stroke-width="1"/>
-      <rect x="-8" y="-1" width="16" height="2" fill="#111"/>
-      <rect x="-2" y="-5" width="4" height="10" fill="#111"/>
+    <g class="car" transform="scale(0.8)">
+      <!-- corps jaune -->
+      <rect x="-6" y="-3" width="12" height="6" fill="#FFD500"/>
+      <!-- cockpit noir -->
+      <rect x="-2" y="-2" width="4" height="4" fill="#111"/>
+      <!-- aileron avant -->
+      <rect x="6" y="-2.5" width="2" height="5" fill="#111"/>
+      <!-- aileron arrière -->
+      <rect x="-8" y="-3" width="2" height="6" fill="#111"/>
+      <!-- roues -->
+      <circle cx="-4" cy="-3.5" r="1.5" fill="#111"/>
+      <circle cx="-4" cy="3.5" r="1.5" fill="#111"/>
+      <circle cx="4" cy="-3.5" r="1.2" fill="#111"/>
+      <circle cx="4" cy="3.5" r="1.2" fill="#111"/>
+      <!-- bande bleue -->
+      <rect x="-4" y="-3" width="8" height="6" fill="none" stroke="#0055FF" stroke-width="0.6"/>
     </g>
   `;
 
