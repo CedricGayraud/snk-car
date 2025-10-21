@@ -13,12 +13,11 @@ export const createSnake = (
   { sizeCell }: Options,
   duration: number,
 ) => {
-  // --- 1️⃣ Positions + angle de direction ---
+  // --- Récupère les positions et les angles ---
   const headData = chain.map((snake, i, arr) => {
     const x = getHeadX(snake) * sizeCell;
     const y = getHeadY(snake) * sizeCell;
 
-    // angle vers la cellule suivante
     let angleDeg = 0;
     if (i < arr.length - 1) {
       const next = arr[i + 1];
@@ -30,7 +29,7 @@ export const createSnake = (
     return { x, y, t: i / arr.length, angle: angleDeg };
   });
 
-  // --- 2️⃣ Animation fluide ---
+  // --- Animation fluide ---
   const keyframes = headData.map(({ t, x, y, angle }) => ({
     t,
     style: `transform:translate(${x}px,${y}px) rotate(${angle}deg)`,
@@ -47,9 +46,11 @@ export const createSnake = (
     `,
   ];
 
-  // --- 3️⃣ SVG détaillé Renault F1, taille agrandie et ajustée ---
+  // --- Taille dynamique selon la grille ---
+  const scale = sizeCell / 10 * 5; // 5x la taille d’une cellule moyenne
+
   const carSvg = `
-    <g class="car" transform="scale(4.2)">
+    <g class="car" transform="scale(${scale})">
       <!-- Carrosserie principale -->
       <path d="M-6.6,-2.5 L-1.2,-2.5 L5.4,-1.6 L6.6,0 L5.4,1.6 L-1.2,2.5 L-6.6,2.5 Z" fill="#FFD500"/>
 
