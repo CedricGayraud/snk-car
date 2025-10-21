@@ -13,41 +13,38 @@ export const createSnake = (
   { sizeCell }: Options,
   duration: number,
 ) => {
-  const interpolatedFrames: {
-    x: number;
-    y: number;
-    t: number;
-    angle: number;
-  }[] = [];
+  const subSteps = 6; // interpolation fluide
+  const frames: { x: number; y: number; t: number; angle: number }[] = [];
 
-  // --- 1️⃣ On génère des positions intermédiaires pour la fluidité ---
-  const subSteps = 6; // plus élevé = plus fluide
   for (let i = 0; i < chain.length - 1; i++) {
-    const curr = chain[i];
-    const next = chain[i + 1];
+    const x1 = getHeadX(chain[i]) * sizeCell;
+    const y1 = getHeadY(chain[i]) * sizeCell;
+    const x2 = getHeadX(chain[i + 1]) * sizeCell;
+    const y2 = getHeadY(chain[i + 1]) * sizeCell;
 
-    const x1 = getHeadX(curr) * sizeCell;
-    const y1 = getHeadY(curr) * sizeCell;
-    const x2 = getHeadX(next) * sizeCell;
-    const y2 = getHeadY(next) * sizeCell;
-
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    const angle1 = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
+    const angle2 =
+      i < chain.length - 2
+        ? (Math.atan2(
+            getHeadY(chain[i + 2]) * sizeCell - y2,
+            getHeadX(chain[i + 2]) * sizeCell - x2,
+          ) *
+            180) /
+          Math.PI
+        : angle1;
 
     for (let j = 0; j < subSteps; j++) {
       const k = j / subSteps;
-      interpolatedFrames.push({
-        x: x1 + dx * k,
-        y: y1 + dy * k,
+      frames.push({
+        x: x1 + (x2 - x1) * k,
+        y: y1 + (y2 - y1) * k,
         t: (i + k) / chain.length,
-        angle,
+        angle: angle1 + (angle2 - angle1) * k, // interpolation angulaire
       });
     }
   }
 
-  // --- 2️⃣ Création des keyframes SVG fluide ---
-  const keyframes = interpolatedFrames.map(({ t, x, y, angle }) => ({
+  const keyframes = frames.map(({ t, x, y, angle }) => ({
     t,
     style: `transform:translate(${x}px,${y}px) rotate(${angle}deg)`,
   }));
@@ -57,8 +54,9 @@ export const createSnake = (
     createAnimation(animationName, keyframes),
     `
     .car {
-      animation: ${animationName} ${duration * 3.2}ms linear infinite;
-      transform-origin: center;
+      animation: ${animationName} ${duration * 3.8}ms linear infinite;
+      transform-box: fill-box;
+      transform-origin: center center;
     }
     `,
   ];

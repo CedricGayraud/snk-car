@@ -109,7 +109,7 @@ export const createGrid = (
         createAnimation(animName, [
           { t: t - 0.0001, style: `fill:${fill}` },
           { t: t + 0.0001, style: `fill:#484848` },
-          { t: 1, style: `fill:#484848` },
+
         ]),
         `.cell.${id}{ animation-name:${animName}; }`
       );
