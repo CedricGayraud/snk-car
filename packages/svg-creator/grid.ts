@@ -16,10 +16,10 @@ export const createGrid = (
   o: Options,
   duration: number
 ) => {
-  // --- ⚙️ Paramètres généraux ---
-  const vibreurHeight = o.sizeCell * 0.45; // plus fins
+  // --- ⚙️ Paramètres visuels ---
+  const vibreurHeight = o.sizeCell * 0.45;
   const stripeWidth = o.sizeCell * 0.45;
-  const outerMargin = o.sizeCell * 0.05;   // marges plus petites
+  const outerMargin = o.sizeCell * 0.05;
   const innerMargin = o.sizeCell * 0.05;
   const outlineWidth = o.sizeCell * 0.05;
 
@@ -37,7 +37,7 @@ export const createGrid = (
   const gridX = outlineWidth + outerMargin;
   const gridY = outlineWidth + outerMargin + vibreurHeight + innerMargin;
 
-  // --- 🎨 Définition des motifs (vibreurs rouges/blancs) ---
+  // --- 🎨 Vibreurs rouges/blancs ---
   const defs = `
     <defs>
       <pattern id="kerb" patternUnits="userSpaceOnUse" width="${stripeWidth * 2}" height="${vibreurHeight}">
@@ -50,39 +50,32 @@ export const createGrid = (
     </defs>
   `;
 
-  // --- 🧱 Fond global (bordures + piste + vibreurs) ---
+  // --- 🧱 Fond global (piste, marges, vibreurs) ---
   const base = `
-    <!-- Bordure noire extérieure -->
     <rect x="0" y="0" width="${totalW}" height="${totalH}" fill="#000"/>
-
-    <!-- Marge blanche extérieure -->
     <rect x="${outlineWidth}" y="${outlineWidth}" 
           width="${totalW - outlineWidth * 2}" height="${totalH - outlineWidth * 2}" fill="#FFF"/>
 
-    <!-- Vibreur haut -->
     <rect x="${outlineWidth + outerMargin}" y="${outlineWidth + outerMargin}"
           width="${totalW - (outlineWidth + outerMargin) * 2}" height="${vibreurHeight}" fill="url(#kerb)"/>
 
-    <!-- Vibreur bas -->
     <rect x="${outlineWidth + outerMargin}" 
           y="${totalH - (outlineWidth + outerMargin) - vibreurHeight}"
           width="${totalW - (outlineWidth + outerMargin) * 2}" height="${vibreurHeight}" fill="url(#kerb)"/>
 
-    <!-- Marges blanches intérieures -->
     <rect x="${gridX}" y="${gridY - innerMargin}" width="${gridW}" height="${innerMargin}" fill="#FFF"/>
     <rect x="${gridX}" y="${gridY + gridH}" width="${gridW}" height="${innerMargin}" fill="#FFF"/>
 
-    <!-- Fond gris piste -->
     <rect x="${gridX}" y="${gridY}" width="${gridW}" height="${gridH}" fill="#484848"/>
   `;
 
-  // --- 🎬 Animation dynamique des cellules ---
+  // --- 🎬 Animation des cellules ---
   const styles: string[] = [
     `.cell {
       shape-rendering: geometricPrecision;
       stroke: #484848;
       stroke-width: 1px;
-      animation: none ${duration}ms linear infinite;
+      animation: none ${duration * 0.7}ms linear infinite;
     }`
   ];
 
@@ -91,32 +84,36 @@ export const createGrid = (
     const cy = gridY + (y - minY) * o.sizeCell + (o.sizeCell - o.sizeDot) / 2;
     const r = o.sizeDotBorderRadius;
 
-    // Palette simplifiée
+    // Palette de couleurs
     const colorMap: Record<number, string> = {
-      0: "#484848", // piste
-      1: "#FFFFFF", // faible
-      2: "#D91E18", // moyenne
-      3: "#0062FF", // forte
+      0: "#484848",
+      1: "#FFFFFF",
+      2: "#D91E18",
+      3: "#0062FF",
     };
     const fill = colorMap[color as number] ?? o.colorEmpty;
 
-    const id = t && "cell" + i.toString(36);
-
-    // Animation : quand la voiture passe (t), la case devient gris piste
-    if (t !== null && id) {
-      const animName = id;
+    // ✅ Nouveau comportement : seules les cases réellement traversées changent
+    if (t !== null && !isNaN(t)) {
+      const animName = `cell${i.toString(36)}`;
+      // élargit la fenêtre temporelle autour de t
+      const dt = 1 / cells.length; // plage minuscule
       styles.push(
         createAnimation(animName, [
-          { t: t - 0.0001, style: `fill:${fill}` },
-          { t: t + 0.0001, style: `fill:#484848` },
-
+          { t: Math.max(0, t - dt * 1.5), style: `fill:${fill}` },
+          { t: t, style: `fill:#484848` },
+          { t: Math.min(1, t + dt * 0.5), style: `fill:#484848` },
         ]),
-        `.cell.${id}{ animation-name:${animName}; }`
+        `.cell.${animName}{ animation-name:${animName}; }`
       );
+
+      return `<rect x="${cx}" y="${cy}" width="${o.sizeDot}" height="${o.sizeDot}"
+                   rx="${r}" ry="${r}" fill="${fill}" class="cell ${animName}"/>`;
     }
 
+    // pas d’animation
     return `<rect x="${cx}" y="${cy}" width="${o.sizeDot}" height="${o.sizeDot}"
-                   rx="${r}" ry="${r}" fill="${fill}" class="cell ${id || ""}"/>`;
+                   rx="${r}" ry="${r}" fill="${fill}" class="cell"/>`;
   }).join("");
 
   return {
