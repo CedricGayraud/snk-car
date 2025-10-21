@@ -1,7 +1,6 @@
 import {
   getColor,
   isEmpty,
-  isInside,
 } from "@snk/types/grid";
 import { getHeadX, getHeadY } from "@snk/types/snake";
 import type { Snake } from "@snk/types/snake";
@@ -50,29 +49,20 @@ const createLivingCells = (
     color: getColor(grid0, x, y),
   }));
 
-  // ✅ On ne modifie plus grid0
-  const visited = new Set<string>();
-
+  // ✅ Ne suit que la tête du snake
   for (let i = 0; i < chain.length; i++) {
-    const snake = chain[i];
-    const x = getHeadX(snake);
-    const y = getHeadY(snake);
+    const headX = getHeadX(chain[i]);
+    const headY = getHeadY(chain[i]);
 
-    if (!isInside(grid0, x, y)) continue;
-
-    const key = `${x},${y}`;
-    if (!visited.has(key)) {
-      visited.add(key);
-
-      const cell = livingCells.find((c) => c.x === x && c.y === y);
-      if (cell && !isEmpty(cell.color)) {
-        cell.t = i / chain.length;
-      }
+    const cell = livingCells.find(c => c.x === headX && c.y === headY);
+    if (cell && cell.t === null && !isEmpty(cell.color)) {
+      cell.t = i / chain.length;
     }
   }
 
   return livingCells;
 };
+
 
 
 export const createSvg = (
