@@ -1,5 +1,6 @@
 import type { Color, Empty } from "@snk/types/grid";
 import type { Point } from "@snk/types/point";
+import { createAnimation } from "./css-utils";
 
 export type Options = {
   colorDots: Record<Color, string>;
@@ -13,9 +14,9 @@ export type Options = {
 export const createGrid = (
   cells: (Point & { t: number | null; color: Color | Empty })[],
   o: Options,
-  _duration: number
+  duration: number
 ) => {
-  // --- ⚙️ Paramètres visuels généraux ---
+  // --- ⚙️ Paramètres généraux ---
   const vibreurHeight = o.sizeCell * 0.45;
   const stripeWidth = o.sizeCell * 0.45;
   const outerMargin = o.sizeCell * 0.05;
@@ -70,31 +71,55 @@ export const createGrid = (
     <rect x="${gridX}" y="${gridY}" width="${gridW}" height="${gridH}" fill="#484848"/>
   `;
 
-  // --- 🟦 Grille statique, sans animation ---
+  // --- 🎬 Animation contrôlée (au passage de la voiture uniquement) ---
   const colorMap: Record<number, string> = {
-    0: "#484848", // piste
+    0: "#484848",
     1: "#FFFFFF",
     2: "#D91E18",
     3: "#0062FF",
   };
 
-  const cellRects = cells.map(({ x, y, color }) => {
+  const styles: string[] = [
+    `.cell {
+      shape-rendering: geometricPrecision;
+      stroke: #484848;
+      stroke-width: 1px;
+    }`
+  ];
+
+  const cellRects = cells.map(({ x, y, color, t }, i) => {
     const cx = gridX + (x - minX) * o.sizeCell + (o.sizeCell - o.sizeDot) / 2;
     const cy = gridY + (y - minY) * o.sizeCell + (o.sizeCell - o.sizeDot) / 2;
     const r = o.sizeDotBorderRadius;
     const fill = colorMap[color as number] ?? o.colorEmpty;
+
+    const id = t !== null ? `cell${i.toString(36)}` : null;
+
+    if (id) {
+      const animName = id;
+      const tNum = t as number; // ✅ conversion sûre
+
+      styles.push(
+        createAnimation(animName, [
+          { t: Math.max(0, tNum - 0.001), style: `fill:${fill}` },
+          { t: tNum, style: `fill:#484848` },
+          { t: 1, style: `fill:#484848` },
+        ]),
+        `.cell.${id}{ animation:${animName} ${duration}ms linear infinite; }`
+      );
+    }
+
 
     return `<rect 
       x="${cx}" y="${cy}" 
       width="${o.sizeDot}" height="${o.sizeDot}" 
       rx="${r}" ry="${r}" 
       fill="${fill}" 
-      stroke="#484848" 
-      stroke-width="1"/>`;
+      class="cell ${id || ""}"/>`;
   }).join("");
 
   return {
     svgElements: [defs, base, `<g clip-path="url(#gridClip)">${cellRects}</g>`],
-    styles: [], // ✅ plus aucune animation CSS parasite
+    styles,
   };
 };
