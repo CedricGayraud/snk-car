@@ -47,7 +47,7 @@ export const createSnake = (
   ];
 
   // --- Taille dynamique selon la grille ---
-  const scale = sizeCell / 10 * 5; // 5x la taille d’une cellule moyenne
+const scale = (sizeCell / 10) * 20;
 
   const carSvg = `
     <g class="car" transform="scale(${scale})">

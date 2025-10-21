@@ -17,11 +17,11 @@ export const createGrid = (
   duration: number
 ) => {
   // --- ⚙️ Paramètres généraux ---
-  const vibreurHeight = o.sizeCell * 0.6;
-  const stripeWidth = o.sizeCell * 0.6;
-  const outerMargin = o.sizeCell * 0.15;
-  const innerMargin = o.sizeCell * 0.15;
-  const outlineWidth = o.sizeCell * 0.1;
+  const vibreurHeight = o.sizeCell * 0.45; // plus fins
+  const stripeWidth = o.sizeCell * 0.45;
+  const outerMargin = o.sizeCell * 0.05;   // marges plus petites
+  const innerMargin = o.sizeCell * 0.05;
+  const outlineWidth = o.sizeCell * 0.05;
 
   const xs = cells.map(c => c.x);
   const ys = cells.map(c => c.y);
