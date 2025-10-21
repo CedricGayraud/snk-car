@@ -1,65 +1,52 @@
 import { getHeadX, getHeadY } from "@snk/types/snake";
 import type { Snake } from "@snk/types/snake";
+import { createAnimation } from "./css-utils";
 
 export type Options = {
   colorSnake: string;
   sizeCell: number;
+  sizeDot: number;
 };
+
+const transform = (x: number, y: number) =>
+  `transform:translate(${x}px,${y}px)`;
 
 export const createSnake = (
   chain: Snake[],
-  o: Options,
-  duration: number
+  { sizeCell }: Options,
+  duration: number,
 ) => {
-  const frameDelay = duration / Math.max(chain.length, 1);
+  const headPositions = chain.map((snake, i, { length }) => {
+    const x = getHeadX(snake) * sizeCell;
+    const y = getHeadY(snake) * sizeCell;
+    return { x, y, t: i / length };
+  });
 
-  const frames = chain.map((snake, i) => {
-    const x = getHeadX(snake);
-    const y = getHeadY(snake);
-    const next = chain[Math.min(i + 1, chain.length - 1)];
-    const nx = getHeadX(next);
-    const ny = getHeadY(next);
+  const keyframes = headPositions.map(({ t, x, y }) => ({
+    t,
+    style: transform(x, y),
+  }));
 
-    const angle = Math.atan2(ny - y, nx - x);
-    const deg = (angle * 180) / Math.PI;
-    const px = x * o.sizeCell + o.sizeCell / 2;
-    const py = y * o.sizeCell + o.sizeCell / 2;
+  const animationName = "carMove";
+  const styles = [
+    createAnimation(animationName, keyframes),
+    `
+    .car {
+      fill: none;
+      stroke: none;
+      animation: ${animationName} ${duration}ms linear infinite;
+    }
+    `,
+  ];
 
-    return `
-      <g transform="translate(${px}, ${py}) rotate(${deg}) scale(1.3)">
-        <!-- carrosserie jaune -->
-        <path d="M -22 -8 L -4 -10 L 18 -6 L 26 0 L 18 6 L -4 10 L -22 8 Z" fill="#FFD500"/>
+  // 🏎️ Forme de la F1 (simple path stylisé, mais tu peux garder ton rendu complet ici)
+  const carSvg = `
+    <g class="car">
+      <rect x="-6" y="-3" width="12" height="6" fill="#FFD500" stroke="#111" stroke-width="1"/>
+      <rect x="-8" y="-1" width="16" height="2" fill="#111"/>
+      <rect x="-2" y="-5" width="4" height="10" fill="#111"/>
+    </g>
+  `;
 
-        <!-- nez blanc + pointe rouge -->
-        <path d="M 10 -5 L 26 -2 L 28 0 L 26 2 L 10 5 Z" fill="#FFF"/>
-        <circle cx="27" cy="0" r="2.2" fill="#D10000"/>
-
-        <!-- cockpit noir -->
-        <path d="M -6 -4 Q 8 0 -6 4 Z" fill="#111"/>
-
-        <!-- aileron avant -->
-        <rect x="22" y="-7" width="8" height="14" fill="#111"/>
-
-        <!-- aileron arrière -->
-        <rect x="-28" y="-9" width="8" height="18" fill="#111"/>
-
-        <!-- pneus (arrière plus larges) -->
-        <ellipse cx="-16" cy="-10" rx="7" ry="4" fill="#111"/>
-        <ellipse cx="-16" cy="10"  rx="7" ry="4" fill="#111"/>
-        <ellipse cx="12"  cy="-9"  rx="5" ry="3" fill="#111"/>
-        <ellipse cx="12"  cy="9"   rx="5" ry="3" fill="#111"/>
-      </g>
-      <animateTransform attributeName="transform" attributeType="XML"
-        type="translate"
-        from="${px} ${py}" to="${px} ${py}"
-        dur="${duration}ms" begin="${i * frameDelay}ms" repeatCount="indefinite"/>
-    `;
-  }).join("");
-
-  return {
-    svgElements: [ `<g id="snake-car">${frames}</g>` ],
-    styles: [
-      `#snake-car { animation: none linear ${duration}ms infinite; }`
-    ],
-  };
+  return { svgElements: [carSvg], styles };
 };
