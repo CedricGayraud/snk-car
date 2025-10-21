@@ -4,7 +4,7 @@ import {
   Grid,
   isEmpty,
   isInside,
-  setColorEmpty,
+  setColor,
 } from "@snk/types/grid";
 import { getHeadX, getHeadY, Snake } from "@snk/types/snake";
 
@@ -15,6 +15,6 @@ export const step = (grid: Grid, stack: Color[], snake: Snake) => {
 
   if (isInside(grid, x, y) && !isEmpty(color)) {
     stack.push(color);
-    setColorEmpty(grid, x, y);
+   setColor(grid, x, y, 5 as Color);
   }
 };

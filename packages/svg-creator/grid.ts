@@ -16,7 +16,6 @@ export const createGrid = (
   o: Options,
   duration: number
 ) => {
-  // --- ⚙️ Paramètres généraux ---
   const vibreurHeight = o.sizeCell * 0.45;
   const stripeWidth = o.sizeCell * 0.45;
   const outerMargin = o.sizeCell * 0.05;
@@ -37,7 +36,6 @@ export const createGrid = (
   const gridX = outlineWidth + outerMargin;
   const gridY = outlineWidth + outerMargin + vibreurHeight + innerMargin;
 
-  // --- 🎨 Vibreurs rouges/blancs ---
   const defs = `
     <defs>
       <pattern id="kerb" patternUnits="userSpaceOnUse" width="${stripeWidth * 2}" height="${vibreurHeight}">
@@ -50,27 +48,29 @@ export const createGrid = (
     </defs>
   `;
 
-  // --- 🧱 Fond global ---
   const base = `
     <rect x="0" y="0" width="${totalW}" height="${totalH}" fill="#000"/>
     <rect x="${outlineWidth}" y="${outlineWidth}" 
           width="${totalW - outlineWidth * 2}" height="${totalH - outlineWidth * 2}" fill="#FFF"/>
+
     <rect x="${outlineWidth + outerMargin}" y="${outlineWidth + outerMargin}"
           width="${totalW - (outlineWidth + outerMargin) * 2}" height="${vibreurHeight}" fill="url(#kerb)"/>
     <rect x="${outlineWidth + outerMargin}" 
           y="${totalH - (outlineWidth + outerMargin) - vibreurHeight}"
           width="${totalW - (outlineWidth + outerMargin) * 2}" height="${vibreurHeight}" fill="url(#kerb)"/>
+
     <rect x="${gridX}" y="${gridY - innerMargin}" width="${gridW}" height="${innerMargin}" fill="#FFF"/>
     <rect x="${gridX}" y="${gridY + gridH}" width="${gridW}" height="${innerMargin}" fill="#FFF"/>
+
     <rect x="${gridX}" y="${gridY}" width="${gridW}" height="${gridH}" fill="#484848"/>
   `;
 
-  // --- 🎬 Animation des cellules ---
   const colorMap: Record<number, string> = {
     0: "#484848",
     1: "#FFFFFF",
     2: "#D91E18",
     3: "#0062FF",
+    5: "#FFFF00", // 🟡 couleur des cases visitées
   };
 
   const styles: string[] = [
@@ -89,16 +89,16 @@ export const createGrid = (
 
     if (t != null) {
       const animName = `cell${i.toString(36)}`;
-      const tNum = Math.max(0, Math.min(1, t - 0.005)); // ⏳ petit décalage de synchro
+      const tNum = Math.max(0, Math.min(1, t - 0.005));
 
       styles.push(
         createAnimation(animName, [
           { t: 0, style: `fill:${fill}` },
           { t: tNum, style: `fill:${fill}` },
-          { t: tNum + 0.002, style: `fill:#484848` },
-          { t: 1, style: `fill:#484848` },
+          { t: tNum + 0.002, style: `fill:#FFFF00` }, // 🟡 devient jaune au passage
+          { t: 1, style: `fill:#FFFF00` },            // reste jaune
         ]),
-        `.cell.${animName}{ animation:${animName} ${duration}ms linear forwards; }` // ✅ plus de boucle infinie
+        `.cell.${animName}{ animation:${animName} ${duration}ms linear forwards; }`
       );
 
       return `<rect x="${cx}" y="${cy}" width="${o.sizeDot}" height="${o.sizeDot}"
