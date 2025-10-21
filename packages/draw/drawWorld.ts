@@ -66,7 +66,7 @@ export const drawWorld = (
 };
 
 export const drawLerpWorld = (
-ctx: CanvasRenderingContext2D | CanvasRenderingContext2D, grid: Grid, cells: Point[] | null, snake0: Snake, snake1: Snake, stack: Color[], k: number, o: Options,
+ctx: CanvasRenderingContext2D | CanvasRenderingContext2D, grid: Grid, cells: Point[] | null, _snake0: Snake, _snake1: Snake, stack: Color[], _k: number, o: Options,
 ) => {
   ctx.save();
 
