@@ -13,17 +13,26 @@ export const createSnake = (
   { sizeCell }: Options,
   duration: number,
 ) => {
-  // Récupère la trajectoire de la tête du snake
-  const headPositions = chain.map((snake, i, { length }) => {
+  // --- 1️⃣ Récupère les positions + angles de la tête du snake ---
+  const headData = chain.map((snake, i, arr) => {
     const x = getHeadX(snake) * sizeCell;
     const y = getHeadY(snake) * sizeCell;
-    return { x, y, t: i / length };
+
+    // calcule l’angle de direction (en radians → degrés)
+    let angleDeg = 0;
+    if (i > 0) {
+      const prev = arr[i - 1];
+      const dx = getHeadX(snake) - getHeadX(prev);
+      const dy = getHeadY(snake) - getHeadY(prev);
+      angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
+    }
+    return { x, y, t: i / arr.length, angle: angleDeg };
   });
 
-  // Animation de translation (déplacement du véhicule)
-  const keyframes = headPositions.map(({ t, x, y }) => ({
+  // --- 2️⃣ Génère les keyframes de translation + rotation ---
+  const keyframes = headData.map(({ t, x, y, angle }) => ({
     t,
-    style: `transform:translate(${x}px,${y}px) rotate(0deg)`,
+    style: `transform:translate(${x}px,${y}px) rotate(${angle}deg)`,
   }));
 
   const animationName = "carMove";
@@ -38,40 +47,40 @@ export const createSnake = (
     `,
   ];
 
-  // 🏎️ SVG détaillé Renault F1 Prost 1982 (fidèle à ton drawCar)
+  // --- 3️⃣ SVG détaillé Renault F1 (fidèle à ton drawCar) ---
   const carSvg = `
-    <g class="car" transform="scale(1.2)">
-      <!-- carrosserie principale (jaune vif) -->
+    <g class="car" transform="scale(2.2)">
+      <!-- Carrosserie principale -->
       <path d="M-6.6,-2.5 L-1.2,-2.5 L5.4,-1.6 L6.6,0 L5.4,1.6 L-1.2,2.5 L-6.6,2.5 Z" fill="#FFD500"/>
 
-      <!-- bande blanche -->
+      <!-- Bande blanche -->
       <path d="M4.8,-0.6 L4.8,0.6 L-6.6,1.2 L-6.6,-1.2 Z" fill="#FFFFFF"/>
 
-      <!-- cockpit noir -->
+      <!-- Cockpit noir -->
       <path d="M-1.2,-0.7 Q4.2,0 -1.2,0.7 Z" fill="#111"/>
 
-      <!-- aileron avant noir -->
+      <!-- Aileron avant noir -->
       <rect x="6.6" y="-1.5" width="0.8" height="3" fill="#111"/>
 
-      <!-- aileron arrière noir -->
+      <!-- Aileron arrière noir -->
       <rect x="-7.4" y="-1.5" width="1.4" height="3" fill="#111"/>
 
-      <!-- nez blanc avec pointe rouge -->
+      <!-- Nez blanc avec pointe rouge -->
       <path d="M3.2,-0.5 L7.2,-0.2 L7.4,0 L7.2,0.2 L3.2,0.5 Z" fill="#FFFFFF"/>
       <path d="M7.2,-0.2 L7.4,0 L7.2,0.2 L7.4,0 Z" fill="#D10000"/>
 
-      <!-- prise d’air noire -->
+      <!-- Prise d’air noire -->
       <rect x="-3.2" y="-0.5" width="0.8" height="1" fill="#222"/>
 
-      <!-- roues arrière larges -->
+      <!-- Roues arrière -->
       <ellipse cx="-4.8" cy="-2.1" rx="0.8" ry="0.4" fill="#111"/>
       <ellipse cx="-4.8" cy="2.1" rx="0.8" ry="0.4" fill="#111"/>
 
-      <!-- roues avant plus fines -->
+      <!-- Roues avant -->
       <ellipse cx="4.8" cy="-1.4" rx="0.6" ry="0.3" fill="#111"/>
       <ellipse cx="4.8" cy="1.4" rx="0.6" ry="0.3" fill="#111"/>
 
-      <!-- contour bleu -->
+      <!-- Liseré bleu -->
       <rect x="-4.5" y="-2.5" width="9" height="5" fill="none" stroke="#0055FF" stroke-width="0.3"/>
     </g>
   `;
