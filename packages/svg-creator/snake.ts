@@ -32,15 +32,19 @@ export const createSnake = (
     const delta = Math.abs(angle - lastAngle);
     if (delta > 3) lastAngle = angle;
 
-    for (let j = 0; j < subSteps; j++) {
-      const k = j / subSteps;
-      frames.push({
-        x: x1 + dx * k,
-        y: y1 + dy * k,
-        t: (i + k) / chain.length,
-        angle: lastAngle,
-      });
-    }
+  // 🧩 Facteur de lenteur interne
+  const slowFactor = 1.5;
+
+  for (let j = 0; j < subSteps; j++) {
+    const k = j / subSteps;
+    frames.push({
+      x: x1 + dx * k,
+      y: y1 + dy * k,
+      // 👇 ralentit virtuellement le t, donc la voiture va plus lentement
+      t: Math.min(1, (i + k) / (chain.length * (1 / slowFactor))),
+      angle: lastAngle,
+    });
+  }
   }
 
   const keyframes = frames.map(({ t, x, y, angle }) => ({
@@ -53,7 +57,7 @@ export const createSnake = (
     createAnimation(animationName, keyframes),
     `
     .car {
-      animation: ${animationName} ${duration * 1.6}ms linear infinite;
+      animation: ${animationName} ${duration}ms linear infinite;
       transform-box: fill-box;
       transform-origin: 70% 50%; /* ✅ rotation sur l'avant */
     }
