@@ -33,7 +33,7 @@ export const createSnake = (
     if (delta > 3) lastAngle = angle;
 
   // 🧩 Facteur de lenteur interne
-  const slowFactor = 1.5;
+  // const slowFactor = 1.5;
 
   for (let j = 0; j < subSteps; j++) {
     const k = j / subSteps;
@@ -41,7 +41,8 @@ export const createSnake = (
       x: x1 + dx * k,
       y: y1 + dy * k,
       // 👇 ralentit virtuellement le t, donc la voiture va plus lentement
-      t: Math.min(1, (i + k) / (chain.length * (1 / slowFactor))),
+      // t: Math.min(1, (i + k) / (chain.length * (1 / slowFactor))),
+      t: Math.min(1, (i + k) / (chain.length * 1)),
       angle: lastAngle,
     });
   }
