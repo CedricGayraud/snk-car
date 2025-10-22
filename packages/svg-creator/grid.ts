@@ -16,6 +16,7 @@ export const createGrid = (
   o: Options,
   duration: number
 ) => {
+  // --- Paramètres visuels ---
   const vibreurHeight = o.sizeCell * 0.45;
   const stripeWidth = o.sizeCell * 0.45;
   const outerMargin = o.sizeCell * 0.05;
@@ -36,6 +37,7 @@ export const createGrid = (
   const gridX = outlineWidth + outerMargin;
   const gridY = outlineWidth + outerMargin + vibreurHeight + innerMargin;
 
+  // --- Défs SVG ---
   const defs = `
     <defs>
       <pattern id="kerb" patternUnits="userSpaceOnUse" width="${stripeWidth * 2}" height="${vibreurHeight}">
@@ -48,6 +50,7 @@ export const createGrid = (
     </defs>
   `;
 
+  // --- Fond piste + vibreurs ---
   const base = `
     <rect x="0" y="0" width="${totalW}" height="${totalH}" fill="#000"/>
     <rect x="${outlineWidth}" y="${outlineWidth}" 
@@ -65,12 +68,12 @@ export const createGrid = (
     <rect x="${gridX}" y="${gridY}" width="${gridW}" height="${gridH}" fill="#484848"/>
   `;
 
+  // --- Couleurs de base ---
   const colorMap: Record<number, string> = {
-    0: "#484848",
+    0: "#484848", // piste
     1: "#FFFFFF",
     2: "#D91E18",
     3: "#0062FF",
-    5: "#FFFF00", // 🟡 couleur des cases visitées
   };
 
   const styles: string[] = [
@@ -81,30 +84,35 @@ export const createGrid = (
     }`
   ];
 
+  // --- Création des cellules ---
   const cellRects = cells.map(({ x, y, color, t }, i) => {
     const cx = gridX + (x - minX) * o.sizeCell + (o.sizeCell - o.sizeDot) / 2;
     const cy = gridY + (y - minY) * o.sizeCell + (o.sizeCell - o.sizeDot) / 2;
     const r = o.sizeDotBorderRadius;
     const fill = colorMap[color as number] ?? o.colorEmpty;
 
+    // si t est défini → cellule animée
     if (t != null) {
       const animName = `cell${i.toString(36)}`;
-      const tNum = Math.max(0, Math.min(1, t - 0.005));
+
+      // Sécurité : évite les déclenchements trop précoces
+      const safeT = Math.min(1, Math.max(0, t + 0.005));
 
       styles.push(
         createAnimation(animName, [
           { t: 0, style: `fill:${fill}` },
-          { t: tNum, style: `fill:${fill}` },
-          { t: tNum + 0.002, style: `fill:#FFFF00` }, // 🟡 devient jaune au passage
-          { t: 1, style: `fill:#FFFF00` },            // reste jaune
+          { t: safeT, style: `fill:${fill}` },
+          { t: safeT + 0.001, style: `fill:#484848` },
+          { t: 1, style: `fill:#484848` },
         ]),
         `.cell.${animName}{ animation:${animName} ${duration}ms linear forwards; }`
       );
 
       return `<rect x="${cx}" y="${cy}" width="${o.sizeDot}" height="${o.sizeDot}"
-                   rx="${r}" ry="${r}" fill="${fill}" class="cell ${animName}"/>`;
+                     rx="${r}" ry="${r}" fill="${fill}" class="cell ${animName}"/>`;
     }
 
+    // sinon, cellule statique
     return `<rect x="${cx}" y="${cy}" width="${o.sizeDot}" height="${o.sizeDot}"
                    rx="${r}" ry="${r}" fill="${fill}" class="cell"/>`;
   }).join("");
