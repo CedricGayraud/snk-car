@@ -53,7 +53,7 @@ export const createSnake = (
     createAnimation(animationName, keyframes),
     `
     .car {
-      animation: ${animationName} ${duration * 1.8}ms linear infinite;
+      animation: ${animationName} ${duration * 1.6}ms linear infinite;
       transform-box: fill-box;
       transform-origin: 70% 50%; /* ✅ rotation sur l'avant */
     }
